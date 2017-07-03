@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="sampleApp">
 
     <head>
 
@@ -33,7 +33,7 @@
 
     </head>
 
-    <body>
+    <body ng-controller="SampleCtrl">
     
         <!-- Loader -->
     	<div class="loader">
@@ -60,7 +60,7 @@
 						<ul class="nav navbar-nav navbar-right">
 							<li><a class="scroll-link" href="#features">Logar</a></li>
 							<li><a class="scroll-link" href="#how-it-works">Como jogar</a></li>
-							<li><a class="btn btn-link-2" href="#">jogar</a></li>
+							<li><a class="btn btn-link-2" ng-click="logarFacebook()">Logar com facebook</a></li>
 						</ul>
 					</div>
 				</div>
@@ -79,6 +79,7 @@
                             <div class="top-big-link wow fadeInUp">
                             	<a class="btn btn-link-1 scroll-link" href="#pricing">Homem</a>
                             	<a class="btn btn-link-2 scroll-link" href="#features">Mulher</a>
+                            	<a class="btn btn-link-1 scroll-link" ng-click="logarFacebook()">Facebook</a>
                             </div>
                         </div>
                         <div class="col-sm-5 form-box wow fadeInUp">
@@ -299,13 +300,56 @@
 
 
         <!-- Javascript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.min.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/3.6.6/firebase.js"></script>
+	<script src="https://cdn.firebase.com/libs/angularfire/2.3.0/angularfire.min.js"></script>
+
+	<script>
+	  // Initialize the Firebase SDK
+	  var config = {
+	     apiKey: "AIzaSyBlZVMRe38jJfrwead1evIuV3OfIEVXlCY",
+	    authDomain: "truco-b2e65.firebaseapp.com",
+	    databaseURL: "https://truco-b2e65.firebaseio.com",
+	    projectId: "truco-b2e65",
+	    storageBucket: "",
+	    messagingSenderId: "680811678214"
+	  };
+	  firebase.initializeApp(config);
+	</script>
         <script src="assets/js/jquery-1.11.1.min.js"></script>
         <script src="assets/bootstrap/js/bootstrap.min.js"></script>
         <script src="assets/js/jquery.backstretch.min.js"></script>
         <script src="assets/js/wow.min.js"></script>
         <script src="assets/js/retina-1.1.0.min.js"></script>
         <script src="assets/js/scripts.js"></script>
-        
+        <script type="text/javascript">
+        	
+		var app = angular.module("sampleApp", ["firebase"]);
+		app.controller("SampleCtrl", function($scope, $firebaseArray , $firebaseAuth) {
+
+		  var ref = firebase.database().ref().child("mesas");
+		  $scope.messages = $firebaseArray(ref);
+
+		  $scope.addMessage = function() {
+		    $scope.messages.$add({
+		      text: $scope.newMessageText
+		    });
+		  };
+
+$scope.logarFacebook = function() {
+		     var auth = $firebaseAuth();
+
+		  // login with Facebook
+			  auth.$signInWithPopup("facebook").then(function(firebaseUser) {
+			    console.log("Signed in as:", firebaseUser.uid);
+			  }).catch(function(error) {
+			    console.log("Authentication failed:", error);
+			  });
+		  };
+
+		
+		});
+        </script>
         <!--[if lt IE 10]>
             <script src="assets/js/placeholder.js"></script>
         <![endif]-->
