@@ -87,6 +87,10 @@
                         		<div class="form-top-left">
                         			<h3>Jogar</h3>
                             		<p>Coloca seu dados pra gente saber quem é você:</p>
+                            		<div ng-show="firebaseUser">
+    <p>Hello, {{ firebaseUser.displayName }}</p>
+    <button ng-click="auth.$signOut()">Sign Out</button>
+  </div>
                         		</div>
                         		<div class="form-top-right">
                         			<span aria-hidden="true" class="typcn typcn-pencil"></span>
@@ -96,18 +100,24 @@
 			                    <form role="form" action="" method="post">
 			                    	<div class="form-group">
 			                    	<label class="sr-only" for="form-first-name">First name</label>
-			                        	<input type="text" name="form-first-name" placeholder="First name..." class="form-first-name form-control" id="form-first-name">
+			                        	<input type="text" name="form-first-name" placeholder="First name..." class="form-first-name form-control" id="form-first-name" ng-model="nome">
 			                        </div>
 			                     
 			                        <div class="form-group">
 			                        	<label class="sr-only" for="form-email">Email</label>
-			                        	<input type="text" name="form-email" placeholder="Email..." class="form-email form-control" id="form-email">
+			                        	<input type="text" name="form-email" placeholder="Email..." class="form-email form-control" id="form-email" ng-model="email">
+			                        </div>
+
+			                        <div class="form-group">
+			                        	<label class="sr-only" for="form-email">Senha</label>
+			                        	<input type="text" name="form-email" placeholder="Senha..." class="form-email form-control" id="form-email" ng-model="password">
 			                        </div>
 			                         <div class="form-group">
 			                        	<label class="sr-only" for="form-email">Sexo</label>
 			                        	<select name ="sexo"><option>Homem</option><option>mulher</option></select>
 			                        </div>
-			                        <button type="submit" class="btn">Sign me up!</button>
+			                        <button type="button" class="btn" ng-click="createUser()">Criar</button>
+			                        <button type="button" class="btn" ng-click="signIn()">Logar</button>
 			                        <div class="form-links">
 			                        	<a href="#" class="launch-modal" data-modal-id="modal-privacy">Privacy Policy</a> - 
 			                        	<a href="#" class="launch-modal" data-modal-id="modal-faq">FAQ</a>
@@ -325,7 +335,15 @@
         <script type="text/javascript">
         	
 		var app = angular.module("sampleApp", ["firebase"]);
-		app.controller("SampleCtrl", function($scope, $firebaseArray , $firebaseAuth) {
+
+		app.factory("Auth", ["$firebaseAuth",
+		  function($firebaseAuth) {
+		    return $firebaseAuth();
+		  }
+		]);
+
+
+		app.controller("SampleCtrl", ["$scope", "Auth" ,"$firebaseArray" , "$firebaseAuth",function($scope, Auth, $firebaseArray , $firebaseAuth) {
 
 		  var ref = firebase.database().ref().child("mesas");
 		  $scope.messages = $firebaseArray(ref);
@@ -336,19 +354,55 @@
 		    });
 		  };
 
-$scope.logarFacebook = function() {
-		     var auth = $firebaseAuth();
+	var auth = $firebaseAuth();
+	var auth = Auth;
 
-		  // login with Facebook
-			  auth.$signInWithPopup("facebook").then(function(firebaseUser) {
-			    console.log("Signed in as:", firebaseUser.uid);
-			  }).catch(function(error) {
-			    console.log("Authentication failed:", error);
-			  });
-		  };
+	$scope.logarFacebook = function() {
+var auth = Auth;
 
+	  // login with Facebook
+		  auth.$signInWithPopup("facebook").then(function(firebaseUser) {
+		    console.log("Signed in as:", firebaseUser.uid);
+		  }).catch(function(error) {
+		    console.log("Authentication failed:", error);
+		  });
+	  };
+
+
+	$scope.createUser = function() {
+		var auth = Auth;
+      $scope.message = null;
+      $scope.error = null;
+
+      // Create a new user
+      auth.$createUserWithEmailAndPassword($scope.email, $scope.password)
+        .then(function(firebaseUser) {
+          $scope.message = "User created with uid: " + firebaseUser.uid;
+        }).catch(function(error) {
+          $scope.error = error;
+        });
+    };
+
+    $scope.signIn = function () {
+    	var auth = Auth;
+	      auth.$login('password', {
+	        email: $scope.email,
+	        password: $scope.password
+	      }).then(function(user) {
+	        console.log(user);
+	      }, function(error) {
+	        if (error = 'INVALID_EMAIL') {
+	          console.log('email invalid or not signed up — trying to sign you up!');
+	          $scope.createUser();
+	        } else if (error = 'INVALID_PASSWORD') {
+	          console.log('wrong password!');
+	        } else {
+	          console.log(error);
+	        }
+	      });
+	    }
 		
-		});
+		}]);
         </script>
         <!--[if lt IE 10]>
             <script src="assets/js/placeholder.js"></script>
